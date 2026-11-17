@@ -103,5 +103,3 @@ A utilização do GitHub permitirá manter os documentos organizados, controlar 
 O projeto poderá ser futuramente ampliado através da implementação de uma aplicação de gestão de inventário.
 
 ---
-
-**Fim da proposta de projeto.**
