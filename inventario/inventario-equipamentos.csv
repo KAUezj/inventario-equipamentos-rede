@@ -1,1 +1,4 @@
-
+ID,Equipamento,Marca,Modelo,Numero_Serie,Endereco_IP,Endereco_MAC,Localizacao,Estado
+001,Switch,Cisco,Catalyst,ABC001,192.168.1.10,00:11:22:33:44:55,Bastidor 1,Ativo
+002,Router,MikroTik,hEX,ABC002,192.168.1.1,00:11:22:33:44:66,Sala Tecnica,Ativo
+003,Access Point,Ubiquiti,UAP,ABC003,192.168.1.20,00:11:22:33:44:77,Escritorio,Ativo
