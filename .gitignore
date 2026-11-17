@@ -1,0 +1,25 @@
+
+# Ficheiros temporários
+*.tmp
+*.log
+*.bak
+
+# Ficheiros do sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configurações pessoais de editores
+.vscode/
+.idea/
+
+# Ficheiros Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Ficheiros de segurança e credenciais
+*.pem
+*.key
+secrets/
