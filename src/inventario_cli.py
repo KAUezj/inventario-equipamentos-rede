@@ -190,5 +190,3 @@ def executar_cli() -> None:
             print(f"Erro: {erro}")
 
 
-if __name__ == "__main__":
-    executar_cli()
