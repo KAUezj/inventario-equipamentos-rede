@@ -100,3 +100,17 @@ Não deverão ser publicados dados de autenticação, palavras-passe ou informa�
 A metodologia definida permite realizar o inventário de forma organizada, consistente e documentada.
 
 A aplicação destas etapas contribuirá para melhorar a gestão, manutenção e controlo dos equipamentos de rede.
+
+# Metodologia de Desenvolvimento e Gestão
+
+## 1. Organização Iterativa (Sprints)
+O projeto segue uma abordagem iterativa alinhada com as entregas laboratoriais:
+- **Sprint 1 (v0.1):** Estruturação inicial do repositório, definição do modelo de dados CSV e planeamento.
+- **Sprint 2 (v0.2 — Protótipo Funcional):** População do inventário base, atualização da arquitetura e documentação, desenvolvimento do protótipo CLI em Python e execução de testes preliminares.
+
+## 2. Fluxo de Trabalho no GitHub
+- **Branches:** Desenvolvimento isolado em branches temáticas (`feat/...`) antes da integração na `main`.
+- **Issues & Project:** Tarefas divididas e acompanhadas através de Issues no repositório GitHub.
+- **Commits Regulares:** Registo incremental e descritivo de cada alteração.
+- **Pull Requests:** Revisão e integração controlada das alterações para a branch principal (`main`).
+- **Releases:** Publicação de versões marcadas (`v0.2`) correspondentes aos marcos funcionais.

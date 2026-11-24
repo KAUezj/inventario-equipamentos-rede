@@ -99,3 +99,21 @@ inventario-equipamentos-rede/
 A documentação técnica estabelece a estrutura e os critérios utilizados na elaboração do inventário.
 
 Através deste projeto académico será possível demonstrar conhecimentos de redes informáticas, gestão de equipamentos, organização de informação e utilização de ferramentas de controlo de versões.
+
+# Documentação Técnica e Arquitetura
+
+## 1. Arquitetura Atualizada do Repositório
+```text
+inventario-equipamentos-rede/
+├── README.md                              # Visão geral, arquitetura e guia de execução
+├── .gitignore                             # Exclusão de ficheiros temporários e sensíveis
+├── docs/                                  # Documentação funcional, metodológica e técnica
+│   ├── proposta-projeto.md
+│   ├── metodologia.md
+│   └── documentacao-tecnica.md
+├── inventario/                            # Base de dados operacional em CSV
+│   └── inventario-equipamentos.csv
+├── modelos/                               # Estrutura base normalizada
+│   └── modelo-inventario.csv
+└── src/                                   # Código-fonte do protótipo CLI (Python)
+    └── inventario_cli.py

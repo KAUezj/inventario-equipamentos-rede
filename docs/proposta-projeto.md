@@ -103,4 +103,18 @@ A utilização do GitHub permitirá manter os documentos organizados, controlar 
 O projeto poderá ser futuramente ampliado através da implementação de uma aplicação de gestão de inventário.
 
 ---
+# Proposta do Projeto — Inventário de Equipamentos de Rede
+
+## 1. Enquadramento e Problema
+A gestão manual ou dispersa de equipamentos de rede (routers, switches, firewalls, access points, servidores e bastidores) dificulta a localização física e lógica dos ativos, atrasa intervenções de manutenção e aumenta o risco de falhas de configuração ou conflitos de endereçamento IP/MAC.
+
+## 2. Objetivos
+- Centralizar o registo técnico e operacional dos equipamentos de rede num formato estruturado e portável (`CSV`).
+- Disponibilizar um modelo normalizado (`modelo-inventario.csv`) para novos registos.
+- Implementar um protótipo funcional em Python para listar, pesquisar, adicionar e atualizar o estado dos equipamentos via linha de comandos (CLI).
+- Garantir rastreabilidade e controlo de versões através do GitHub (branches, issues, pull requests e releases).
+
+## 3. Âmbito e Segurança
+- **Incluído:** Identificação do ativo, fabricante, modelo, número de série, endereçamento IP/MAC, localização física, estado operacional e observações técnicas.
+- **Excluído por segurança:** Palavras-passe, chaves privadas, tokens de acesso ou qualquer credencial administrativa.
 
