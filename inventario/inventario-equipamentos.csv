@@ -1,4 +1,11 @@
-ID,Equipamento,Marca,Modelo,Numero_Serie,Endereco_IP,Endereco_MAC,Localizacao,Estado
-001,Switch,Cisco,Catalyst,ABC001,192.168.1.10,00:11:22:33:44:55,Bastidor 1,Ativo
-002,Router,MikroTik,hEX,ABC002,192.168.1.1,00:11:22:33:44:66,Sala Tecnica,Ativo
-003,Access Point,Ubiquiti,UAP,ABC003,192.168.1.20,00:11:22:33:44:77,Escritorio,Ativo
+ID,Equipamento,Marca,Modelo,Numero_Serie,Endereco_IP,Endereco_MAC,Localizacao,Estado,Observacoes
+RTR-01,Router Core,Cisco,ISR 4331,FDO2410A011,192.168.1.1,00:1A:2B:3C:4D:01,Bastidor Principal - Sala TI,Ativo,Gateway principal da rede
+SW-01,Switch Core,Cisco,Catalyst 2960-X,FCW2105B102,192.168.1.2,00:1A:2B:3C:4D:02,Bastidor Principal - Sala TI,Ativo,Switch de distribuicao 48 portas
+SW-02,Switch Acesso,HP Aruba,2530-24G,CN81234503,192.168.1.3,00:1A:2B:3C:4D:03,Piso 1 - Armario Rede A,Ativo,Ligacao aos postos do Piso 1
+FW-01,Firewall,Fortinet,FortiGate 60F,FGT60FTK2200104,192.168.1.254,00:1A:2B:3C:4D:04,Bastidor Principal - Sala TI,Ativo,Controlo perimetral e VPN
+AP-01,Access Point,Ubiquiti,UniFi U6-Pro,BZ214400105,192.168.1.10,00:1A:2B:3C:4D:05,Piso 1 - Teto Sala Reunioes,Ativo,Cobertura Wi-Fi 6 zona reunioes
+AP-02,Access Point,Ubiquiti,UniFi U6-Pro,BZ214400106,192.168.1.11,00:1A:2B:3C:4D:06,Piso 2 - Corredor Central,Ativo,Cobertura Wi-Fi 6 Piso 2
+AP-03,Access Point,TP-Link,Omada EAP650,223456700107,192.168.1.12,00:1A:2B:3C:4D:07,Piso 2 - Escritorio Admin,Manutencao,Sinal intermitente em verificacao
+SRV-01,Servidor,Dell,PowerEdge R650,SRVDELL00108,192.168.1.20,00:1A:2B:3C:4D:08,Bastidor Principal - Sala TI,Ativo,Servidor de ficheiros e autenticacao
+SRV-02,Servidor,Dell,PowerEdge R650,SRVDELL00109,192.168.1.21,00:1A:2B:3C:4D:09,Bastidor Principal - Sala TI,Ativo,Servidor de backups locais
+BST-01,Bastidor de Rede,Rittal,TS IT 42U,RIT42U00110,192.168.1.30,00:1A:2B:3C:4D:10,Sala TI - Zona Central,Ativo,Patch panels e PDU monitorizada
