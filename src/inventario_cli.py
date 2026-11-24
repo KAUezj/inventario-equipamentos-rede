@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import csv
+import ipaddress
+import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,161 +21,174 @@ COLUNAS = [
     "Observacoes",
 ]
 
-ESTADOS_VALIDOS = {"Ativo", "Manutencao", "Inativo"}
+ESTADOS_VALIDOS = ("Ativo", "Manutencao", "Inativo")
+MAC_REGEX = re.compile(r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")
+
+
+def validar_ip(endereco_ip: str) -> str:
+    valor = endereco_ip.strip()
+    try:
+        ipaddress.ip_address(valor)
+    except ValueError as exc:
+        raise ValueError(f"Endereço IP inválido: '{valor}'.") from exc
+    return valor
+
+
+def validar_mac(endereco_mac: str) -> str:
+    valor = endereco_mac.strip().upper()
+    if not MAC_REGEX.match(valor):
+        raise ValueError(f"Endereço MAC inválido: '{valor}'. Use o formato XX:XX:XX:XX:XX:XX.")
+    return valor
+
+
+def validar_estado(estado: str) -> str:
+    valor = estado.strip()
+    if valor not in ESTADOS_VALIDOS:
+        opcoes = ", ".join(ESTADOS_VALIDOS)
+        raise ValueError(f"Estado inválido: '{valor}'. Valores permitidos: {opcoes}.")
+    return valor
 
 
 def carregar_inventario(caminho: Path = INVENTARIO_PATH) -> list[dict[str, str]]:
     if not caminho.exists():
-        raise FileNotFoundError(f"Ficheiro de inventário não encontrado: {caminho}")
-    with caminho.open(mode="r", encoding="utf-8", newline="") as f:
-        leitor = csv.DictReader(f)
+        raise FileNotFoundError(f"Ficheiro não encontrado: {caminho}")
+
+    with caminho.open(mode="r", encoding="utf-8", newline="") as ficheiro:
+        leitor = csv.DictReader(ficheiro)
         if leitor.fieldnames != COLUNAS:
             raise ValueError(
-                f"Cabeçalho inválido em {caminho}. Esperado: {COLUNAS}, obtido: {leitor.fieldnames}"
+                f"Estrutura CSV inválida em {caminho.name}. Colunas esperadas: {COLUNAS}."
             )
         return [{col: (linha.get(col) or "").strip() for col in COLUNAS} for linha in leitor]
 
 
 def guardar_inventario(registos: list[dict[str, str]], caminho: Path = INVENTARIO_PATH) -> None:
     caminho.parent.mkdir(parents=True, exist_ok=True)
-    with caminho.open(mode="w", encoding="utf-8", newline="") as f:
-        escritor = csv.DictWriter(f, fieldnames=COLUNAS)
+    with caminho.open(mode="w", encoding="utf-8", newline="") as ficheiro:
+        escritor = csv.DictWriter(ficheiro, fieldnames=COLUNAS)
         escritor.writeheader()
         escritor.writerows(registos)
 
 
-def listar_equipamentos(registos: list[dict[str, str]]) -> None:
-    if not registos:
-        print("\nNenhum equipamento registado no inventário.")
-        return
-    print(f"\nTotal de equipamentos: {len(registos)}")
-    print("-" * 95)
-    for eq in registos:
-        print(
-            f"[{eq['ID']}] {eq['Equipamento']} ({eq['Marca']} {eq['Modelo']}) | "
-            f"IP: {eq['Endereco_IP']} | Local: {eq['Localizacao']} | Estado: {eq['Estado']}"
-        )
-    print("-" * 95)
-
-
-def pesquisar_equipamentos(registos: list[dict[str, str]], termo: str) -> list[dict[str, str]]:
-    termo_limpo = termo.strip().lower()
-    if not termo_limpo:
-        return []
-    return [
-        eq
-        for eq in registos
-        if any(termo_limpo in (eq.get(campo) or "").lower() for campo in COLUNAS)
-    ]
-
-
-def adicionar_equipamento(registos: list[dict[str, str]], novo: dict[str, str]) -> list[dict[str, str]]:
-    eq_id = novo["ID"].strip().upper()
+def adicionar_equipamento(registos: list[dict[str, str]], dados: dict[str, str]) -> list[dict[str, str]]:
+    eq_id = dados.get("ID", "").strip().upper()
     if not eq_id:
-        raise ValueError("O ID do equipamento é obrigatório.")
-    if any(eq["ID"].strip().upper() == eq_id for eq in registos):
+        raise ValueError("O campo ID é obrigatório.")
+    if any(item["ID"].upper() == eq_id for item in registos):
         raise ValueError(f"Já existe um equipamento com o ID '{eq_id}'.")
 
-    estado = novo["Estado"].strip()
-    if estado not in ESTADOS_VALIDOS:
-        raise ValueError(f"Estado inválido '{estado}'. Use um de: {', '.join(sorted(ESTADOS_VALIDOS))}.")
+    novo = {col: dados.get(col, "").strip() for col in COLUNAS}
+    novo["ID"] = eq_id
+    novo["Endereco_IP"] = validar_ip(novo["Endereco_IP"])
+    novo["Endereco_MAC"] = validar_mac(novo["Endereco_MAC"])
+    novo["Estado"] = validar_estado(novo["Estado"])
 
-    registo_limpo = {col: novo.get(col, "").strip() for col in COLUNAS}
-    registo_limpo["ID"] = eq_id
-    registo_limpo["Estado"] = estado
-
-    atualizados = list(registos)
-    atualizados.append(registo_limpo)
-    return atualizados
+    return [*registos, novo]
 
 
 def atualizar_estado(registos: list[dict[str, str]], eq_id: str, novo_estado: str) -> list[dict[str, str]]:
     id_alvo = eq_id.strip().upper()
-    estado_limpo = novo_estado.strip()
-    if estado_limpo not in ESTADOS_VALIDOS:
-        raise ValueError(
-            f"Estado inválido '{estado_limpo}'. Use um de: {', '.join(sorted(ESTADOS_VALIDOS))}."
-        )
+    estado_validado = validar_estado(novo_estado)
 
-    encontrado = False
-    atualizados: list[dict[str, str]] = []
-    for eq in registos:
-        copia = dict(eq)
-        if copia["ID"].strip().upper() == id_alvo:
-            copia["Estado"] = estado_limpo
-            encontrado = True
-        atualizados.append(copia)
+    atualizado = False
+    resultado: list[dict[str, str]] = []
+    for item in registos:
+        copia = dict(item)
+        if copia["ID"].upper() == id_alvo:
+            copia["Estado"] = estado_validado
+            atualizado = True
+        resultado.append(copia)
 
-    if not encontrado:
+    if not atualizado:
         raise KeyError(f"Equipamento com ID '{id_alvo}' não encontrado.")
-    return atualizados
+    return resultado
+
+
+def pesquisar_equipamentos(registos: list[dict[str, str]], termo: str) -> list[dict[str, str]]:
+    termo_normalizado = termo.strip().lower()
+    if not termo_normalizado:
+        return []
+    return [
+        item
+        for item in registos
+        if any(termo_normalizado in item[col].lower() for col in COLUNAS)
+    ]
 
 
 def resumo_estados(registos: list[dict[str, str]]) -> dict[str, int]:
-    contagem = {"Ativo": 0, "Manutencao": 0, "Inativo": 0, "Outro": 0}
-    for eq in registos:
-        estado = eq.get("Estado", "")
+    contagem = {estado: 0 for estado in ESTADOS_VALIDOS}
+    for item in registos:
+        estado = item.get("Estado", "")
         if estado in contagem:
             contagem[estado] += 1
-        else:
-            contagem["Outro"] += 1
     return contagem
 
 
-def menu() -> None:
-    while True:
-        print("\n=== INVENTÁRIO DE EQUIPAMENTOS DE REDE (CLI) ===")
-        print("1. Listar equipamentos")
-        print("2. Pesquisar equipamento")
-        print("3. Adicionar equipamento")
-        print("4. Atualizar estado operacional")
-        print("5. Ver resumo por estado")
-        print("0. Sair")
-        opcao = input("Escolha uma opção: ").strip()
+def imprimir_tabela(registos: list[dict[str, str]]) -> None:
+    if not registos:
+        print("\nSem registos para apresentar.")
+        return
 
+    print(f"\nRegistos encontrados: {len(registos)}")
+    print(f"{'ID':<8} {'Equipamento':<18} {'IP':<16} {'Localizacao':<28} {'Estado':<12}")
+    print("-" * 86)
+    for eq in registos:
+        print(
+            f"{eq['ID']:<8} {eq['Equipamento']:<18} {eq['Endereco_IP']:<16} "
+            f"{eq['Localizacao']:<28} {eq['Estado']:<12}"
+        )
+
+
+def executar_cli() -> None:
+    while True:
+        print("\nGestão de Inventário de Rede")
+        print("1 - Listar equipamentos")
+        print("2 - Pesquisar equipamento")
+        print("3 - Adicionar equipamento")
+        print("4 - Atualizar estado")
+        print("5 - Resumo por estado")
+        print("0 - Sair")
+
+        opcao = input("Opção: ").strip()
         try:
             registos = carregar_inventario()
             if opcao == "1":
-                listar_equipamentos(registos)
+                imprimir_tabela(registos)
             elif opcao == "2":
-                termo = input("Termo de pesquisa (ID, IP, marca, localização ou estado): ")
-                resultados = pesquisar_equipamentos(registos, termo)
-                listar_equipamentos(resultados)
+                termo = input("Termo de pesquisa: ")
+                imprimir_tabela(pesquisar_equipamentos(registos, termo))
             elif opcao == "3":
-                novo = {
-                    "ID": input("ID (ex.: SW-03): "),
-                    "Equipamento": input("Equipamento (ex.: Switch Acesso): "),
-                    "Marca": input("Marca (ex.: Cisco): "),
-                    "Modelo": input("Modelo (ex.: Catalyst 2960): "),
-                    "Numero_Serie": input("Número de Série: "),
+                dados = {
+                    "ID": input("ID: "),
+                    "Equipamento": input("Equipamento: "),
+                    "Marca": input("Marca: "),
+                    "Modelo": input("Modelo: "),
+                    "Numero_Serie": input("Número de série: "),
                     "Endereco_IP": input("Endereço IP: "),
                     "Endereco_MAC": input("Endereço MAC: "),
                     "Localizacao": input("Localização: "),
-                    "Estado": input("Estado (Ativo / Manutencao / Inativo): "),
+                    "Estado": input("Estado (Ativo/Manutencao/Inativo): "),
                     "Observacoes": input("Observações: "),
                 }
-                atualizados = adicionar_equipamento(registos, novo)
-                guardar_inventario(atualizados)
-                print("Equipamento adicionado e guardado com sucesso.")
+                guardar_inventario(adicionar_equipamento(registos, dados))
+                print("Equipamento registado.")
             elif opcao == "4":
-                eq_id = input("ID do equipamento a atualizar: ")
-                novo_estado = input("Novo estado (Ativo / Manutencao / Inativo): ")
-                atualizados = atualizar_estado(registos, eq_id, novo_estado)
-                guardar_inventario(atualizados)
-                print("Estado atualizado com sucesso.")
+                eq_id = input("ID do equipamento: ")
+                novo_estado = input("Novo estado (Ativo/Manutencao/Inativo): ")
+                guardar_inventario(atualizar_estado(registos, eq_id, novo_estado))
+                print("Estado atualizado.")
             elif opcao == "5":
                 resumo = resumo_estados(registos)
                 print("\nResumo por estado:")
                 for estado, total in resumo.items():
-                    print(f"  - {estado}: {total}")
+                    print(f"  {estado}: {total}")
             elif opcao == "0":
-                print("A sair...")
                 break
             else:
-                print("Opção inválida. Tente novamente.")
-        except (FileNotFoundError, ValueError, KeyError) as exc:
-            print(f"Erro: {exc}")
+                print("Opção inválida.")
+        except (FileNotFoundError, ValueError, KeyError) as erro:
+            print(f"Erro: {erro}")
 
 
 if __name__ == "__main__":
-    menu()
+    executar_cli()
